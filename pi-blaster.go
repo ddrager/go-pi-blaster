@@ -20,7 +20,8 @@ func check(e error) {
 
 func (b *Blaster) Start(start []int64) {
 
-  //var b Blaster 
+  //TODO: Ensure we are running pi and have pi-blaster running
+
   const fifo = "/dev/pi-blaster"
 
   copy(start, b.active)
@@ -48,6 +49,16 @@ func (b *Blaster) Apply(pin int64, value float64) {
   f, err := os.Create("/dev/pi-blaster")
   check(err)
   defer f.Close()
+
+  // ensure set value > 0, < 1
+  if value > 1.0 {
+    fmt.Printf("Request value exceeds 1, setting to 1\n")
+    value = 1.0
+  } else if value < 0.0 {
+    fmt.Printf("Requested value below 0, setting to 0\n")
+    value = 0.0
+  }
+
   var toVal string
   toVal = strconv.FormatFloat(value, 'f', 2, 64)
   n1, err := f.WriteString(strconv.FormatInt(pin, 10) + "=" + toVal + "\n")
